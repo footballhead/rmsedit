@@ -11,5 +11,17 @@ fn main() {
 
     canvas.clear();
     canvas.present();
-    std::thread::sleep(std::time::Duration::new(3, 0));
+
+    let mut event_pump = sdl_context.event_pump().unwrap();
+    'mainloop: loop {
+        for event in event_pump.wait_iter() {
+            match event {
+                sdl2::event::Event::Quit { .. } => break 'mainloop,
+                _ => {
+                    canvas.clear();
+                    canvas.present();
+                }
+            }
+        }
+    }
 }
