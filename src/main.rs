@@ -1,5 +1,6 @@
 use sdl2::pixels::Color;
 use sdl2::pixels::PixelFormatEnum;
+use sdl2::rect::Rect;
 use sdl2::surface::Surface;
 
 const CRUMB_BITS: u8 = 2;
@@ -38,59 +39,53 @@ fn main() {
     let mut canvas = window.into_canvas().build().unwrap();
     let texture_creator = canvas.texture_creator();
 
-    let mut textures: Vec<sdl2::render::Texture> = Vec::new();
+    let pic_data = std::fs::read("CGAPICS.PIC").unwrap();
+    let textures: Vec<sdl2::render::Texture> = pic_data
+        // Divide the stream of bytes into discrete image sections.
+        .chunks(IMAGE_ALIGNMENT)
+        // Ignore first row (CGA_HEADER, 4 bytes) and garbage after image data.
+        // (IDK why CGA data is only 1/4 of the allotted space... ask John Murphy)
+        .map(|x| &x[IMAGE_ROW_SIZE..CGA_IMAGE_SIZE])
+        // Turn byte chunks into images
+        .map(|x| {
+            // TODO: Is there a "best" pixel format for what I'm doing?
+            let mut surface =
+                Surface::new(IMAGE_DIMENSION, IMAGE_DIMENSION, PixelFormatEnum::RGB24).unwrap();
 
-    // TODO: Write this in a more functional way
-    let pic = std::fs::read("CGAPICS.PIC").unwrap();
-    for image_chunk in pic.chunks(IMAGE_ALIGNMENT) {
-        // TODO: Is there a "best" pixel format for what I'm doing?
-        let mut surface =
-            Surface::new(IMAGE_DIMENSION, IMAGE_DIMENSION, PixelFormatEnum::RGB24).unwrap();
-
-        // Ignore first row (4 byte header + 4 bytes garbage) and garbage after image data
-        // IDK Why the CGA image data is only a fraction of the allotted space... ask John Murphy
-        let chunk_only_image_data = &image_chunk[IMAGE_ROW_SIZE..CGA_IMAGE_SIZE];
-
-        for (y, row_data) in chunk_only_image_data.chunks(IMAGE_ROW_SIZE).enumerate() {
-            for (x, pixel) in row_data.iter().enumerate() {
-                // Turn byte reads into crumbs
-                let a = (pixel >> CRUMB_BITS >> CRUMB_BITS >> CRUMB_BITS) & CRUMB_MASK;
-                let b = (pixel >> CRUMB_BITS >> CRUMB_BITS) & CRUMB_MASK;
-                let c = (pixel >> CRUMB_BITS) & CRUMB_MASK;
-                let d = (pixel) & CRUMB_MASK;
-
-                surface
-                    .fill_rect(
-                        sdl2::rect::Rect::new((x * CRUMBS_PER_BYTE) as i32, y as i32, 1, 1),
-                        CGA_PALETTE[a as usize],
-                    )
-                    .unwrap();
-                surface
-                    .fill_rect(
-                        sdl2::rect::Rect::new((x * CRUMBS_PER_BYTE + 1) as i32, y as i32, 1, 1),
-                        CGA_PALETTE[b as usize],
-                    )
-                    .unwrap();
-                surface
-                    .fill_rect(
-                        sdl2::rect::Rect::new((x * CRUMBS_PER_BYTE + 2) as i32, y as i32, 1, 1),
-                        CGA_PALETTE[c as usize],
-                    )
-                    .unwrap();
-                // TODO: less fragile way of handling incomplete rows
-                if (x * CRUMBS_PER_BYTE + 3) < (IMAGE_DIMENSION as usize) {
+            x.iter()
+                // Turn 1 byte into 4 crumbs
+                .flat_map(|xx| {
+                    vec![
+                        (xx >> CRUMB_BITS >> CRUMB_BITS >> CRUMB_BITS) & CRUMB_MASK,
+                        (xx >> CRUMB_BITS >> CRUMB_BITS) & CRUMB_MASK,
+                        (xx >> CRUMB_BITS) & CRUMB_MASK,
+                        xx & CRUMB_MASK,
+                    ]
+                })
+                // The last crumb of each row is garbage
+                .enumerate()
+                .filter(|&(i, _)| i % IMAGE_ROW_CRUMBS < (IMAGE_DIMENSION as usize))
+                // Draw pixels
+                .for_each(|(i, x)| {
                     surface
                         .fill_rect(
-                            sdl2::rect::Rect::new((x * CRUMBS_PER_BYTE + 3) as i32, y as i32, 1, 1),
-                            CGA_PALETTE[d as usize],
+                            // Since i is leftover from the previous filter, we use that row size
+                            // (IMAGE_ROW_CRUMBS) instead of the actual row size (IMAGE_DIMENSION)
+                            Rect::new(
+                                (i % IMAGE_ROW_CRUMBS) as i32,
+                                (i / IMAGE_ROW_CRUMBS) as i32,
+                                1,
+                                1,
+                            ),
+                            CGA_PALETTE[x as usize],
                         )
-                        .unwrap();
-                }
-            }
-        }
+                        .unwrap()
+                });
 
-        textures.push(surface.as_texture(&texture_creator).unwrap());
-    }
+            // Return a texture
+            surface.as_texture(&texture_creator).unwrap()
+        })
+        .collect();
 
     canvas.clear();
     canvas.copy(&textures[0], None, None).unwrap();
@@ -105,7 +100,9 @@ fn main() {
                 sdl2::event::Event::Quit { .. } => break 'mainloop,
                 _ => {
                     canvas.clear();
-                    canvas.copy(&textures[debug_image_index], None, None).unwrap();
+                    canvas
+                        .copy(&textures[debug_image_index], None, None)
+                        .unwrap();
                     canvas.present();
                 }
             }
