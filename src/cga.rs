@@ -5,6 +5,7 @@ use sdl2::surface::Surface;
 
 use super::crumb;
 use super::crumb::crumb;
+use super::img;
 
 pub const CGA_HEADER: [u8; 4] = [0x0E, 0x00, 0x0E, 0x00];
 
@@ -15,8 +16,6 @@ const CGA_IMAGE_SIZE: usize = 64;
 const IMAGE_ALIGNMENT: usize = CGA_IMAGE_SIZE * 4;
 // TODO: static_assert(CGA_IMAGE_SIZE < IMAGE_ALIGNMENT)
 
-// Width and height
-const IMAGE_DIMENSION: u32 = 15;
 // TODO: static_assert(IMAGE_DIMENSION <= IMAGE_ROW_NIBBLES)
 // TODO: static_assert((CGA_IMAGE_SIZE - IMAGE_ROW_SIZE) / IMAGE_ROW_SIZE == IMAGE_DIMENSION)
 
@@ -49,15 +48,19 @@ pub fn load_spritesheet<'a>(
         // Turn byte chunks into images
         .map(|x| {
             // TODO: Is there a "best" pixel format for what I'm doing?
-            let mut surface =
-                Surface::new(IMAGE_DIMENSION, IMAGE_DIMENSION, PixelFormatEnum::RGB24).unwrap();
+            let mut surface = Surface::new(
+                img::IMAGE_DIMENSION,
+                img::IMAGE_DIMENSION,
+                PixelFormatEnum::RGB24,
+            )
+            .unwrap();
 
             x.iter()
                 // Turn 1 byte into 4 crumbs
                 .flat_map(|xx| vec![crumb(xx, 3), crumb(xx, 2), crumb(xx, 1), crumb(xx, 0)])
                 // The last crumb of each row is garbage
                 .enumerate()
-                .filter(|&(i, _)| i % IMAGE_ROW_CRUMBS < (IMAGE_DIMENSION as usize))
+                .filter(|&(i, _)| i % IMAGE_ROW_CRUMBS < (img::IMAGE_DIMENSION as usize))
                 // Draw pixels
                 .for_each(|(i, x)| {
                     surface

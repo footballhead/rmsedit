@@ -1,6 +1,9 @@
 use super::cga;
 use super::ega;
 
+/// Width and height
+pub const IMAGE_DIMENSION: u32 = 15;
+
 fn header_match(to_match: &[u8]) -> [u8; 4] {
     [to_match[0], to_match[1], to_match[2], to_match[3]]
 }

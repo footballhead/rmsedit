@@ -5,12 +5,12 @@ use sdl2::surface::Surface;
 
 use super::crumb;
 use super::crumb::crumb;
+use super::img;
 
 pub const EGA_HEADER: [u8; 4] = [0x1D, 0x00, 0x0E, 0x00];
 
 // Width and height
-const IMAGE_DIMENSION: u32 = 15;
-const IMAGE_DIMENSION_USIZE: usize = IMAGE_DIMENSION as usize;
+const IMAGE_DIMENSION_USIZE: usize = img::IMAGE_DIMENSION as usize;
 
 const IMAGE_ALIGNMENT: usize = 256;
 // TODO static_assert IMAGE_DIMENSION * IMAGE_DIMENSION + EGA_HEADER.len() <= IMAGE_ALIGNMENT
@@ -74,7 +74,7 @@ pub fn load_spritesheet<'a>(
                 .map(|xx| if xx > 0 { 1 } else { 0 })
                 // The last crumb of each channel row is garbage
                 .enumerate()
-                .filter(|&(i, _)| i % IMAGE_CHANNEL_ROW_CRUMBS < (IMAGE_DIMENSION as usize))
+                .filter(|&(i, _)| i % IMAGE_CHANNEL_ROW_CRUMBS < IMAGE_DIMENSION_USIZE)
                 // Accumulate pixels
                 .for_each(|(i, v)| {
                     // Since i is leftover from the previous filter, we use that row size
@@ -89,8 +89,12 @@ pub fn load_spritesheet<'a>(
                 });
 
             // TODO: Is there a "best" pixel format for what I'm doing?
-            let mut surface =
-                Surface::new(IMAGE_DIMENSION, IMAGE_DIMENSION, PixelFormatEnum::RGB24).unwrap();
+            let mut surface = Surface::new(
+                img::IMAGE_DIMENSION,
+                img::IMAGE_DIMENSION,
+                PixelFormatEnum::RGB24,
+            )
+            .unwrap();
 
             for i in 0..(IMAGE_DIMENSION_USIZE * IMAGE_DIMENSION_USIZE) {
                 let v = ega_color_buffer[i];
