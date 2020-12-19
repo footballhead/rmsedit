@@ -28,6 +28,16 @@ const CGA_PALETTE: [Color; 4] = [
     Color::RGB(0xFF, 0xFF, 0xFF),
 ];
 
+// higher part = more significant bit
+// e.g. 33221100
+fn crumb(val: &u8, part: u8) -> u8 {
+    (val >> (CRUMB_BITS * part)) & CRUMB_MASK
+}
+
+fn pixel(x: i32, y: i32) -> Rect {
+    Rect::new(x, y, 1, 1)
+}
+
 // Lifetime: the returned Textures have data owned by TextureCreator
 fn load_spritesheet<'a>(
     filename: &str,
@@ -48,14 +58,7 @@ fn load_spritesheet<'a>(
 
             x.iter()
                 // Turn 1 byte into 4 crumbs
-                .flat_map(|xx| {
-                    vec![
-                        (xx >> CRUMB_BITS >> CRUMB_BITS >> CRUMB_BITS) & CRUMB_MASK,
-                        (xx >> CRUMB_BITS >> CRUMB_BITS) & CRUMB_MASK,
-                        (xx >> CRUMB_BITS) & CRUMB_MASK,
-                        xx & CRUMB_MASK,
-                    ]
-                })
+                .flat_map(|xx| vec![crumb(xx, 3), crumb(xx, 2), crumb(xx, 1), crumb(xx, 0)])
                 // The last crumb of each row is garbage
                 .enumerate()
                 .filter(|&(i, _)| i % IMAGE_ROW_CRUMBS < (IMAGE_DIMENSION as usize))
@@ -65,12 +68,7 @@ fn load_spritesheet<'a>(
                         .fill_rect(
                             // Since i is leftover from the previous filter, we use that row size
                             // (IMAGE_ROW_CRUMBS) instead of the actual row size (IMAGE_DIMENSION)
-                            Rect::new(
-                                (i % IMAGE_ROW_CRUMBS) as i32,
-                                (i / IMAGE_ROW_CRUMBS) as i32,
-                                1,
-                                1,
-                            ),
+                            pixel((i % IMAGE_ROW_CRUMBS) as i32, (i / IMAGE_ROW_CRUMBS) as i32),
                             CGA_PALETTE[x as usize],
                         )
                         .unwrap()
