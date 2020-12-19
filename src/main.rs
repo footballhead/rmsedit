@@ -1,5 +1,6 @@
 mod cga;
 mod crumb;
+mod ega;
 
 mod tests;
 
@@ -14,7 +15,7 @@ fn main() {
     let mut canvas = window.into_canvas().build().unwrap();
     let texture_creator = canvas.texture_creator();
 
-    let textures = cga::load_spritesheet("CGAPICS.PIC", &texture_creator);
+    let textures = ega::load_spritesheet("EGAPICS.PIC", &texture_creator);
 
     let mut debug_image_index = 0;
     let paint = &mut || {
