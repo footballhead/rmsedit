@@ -1,11 +1,16 @@
+use sdl2::rect::Rect;
+
 mod cga;
 mod crumb;
 mod ega;
 mod img;
+mod rms;
 
 mod tests;
 
 fn main() {
+    let rooms = rms::load_rooms("DUNGEON.RMS");
+
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
     let window = video_subsystem
@@ -18,14 +23,34 @@ fn main() {
 
     let textures = img::load_spritesheet("EGAPICS.PIC", &texture_creator);
 
-    let mut debug_image_index = 0;
+    let mut debug_room_index: usize = 0;
     let paint = &mut || {
         canvas.clear();
-        canvas
-            .copy(&textures[debug_image_index], None, None)
-            .unwrap();
+        for y in 0..rms::ROOM_HEIGHT {
+            for x in 0..rms::ROOM_WIDTH {
+                let mut tile = rooms[debug_room_index].get_tile(x, y);
+                if tile == 0 {
+                    continue;
+                }
+                tile -= 1;
+
+                canvas
+                    .copy(
+                        &textures[tile as usize],
+                        None,
+                        Rect::new(
+                            (x * img::IMAGE_DIMENSION) as i32,
+                            (y * img::IMAGE_DIMENSION) as i32,
+                            img::IMAGE_DIMENSION,
+                            img::IMAGE_DIMENSION,
+                        ),
+                    )
+                    .unwrap();
+            }
+        }
         canvas.present();
-        debug_image_index = (debug_image_index + 1) % textures.len();
+
+        debug_room_index = (debug_room_index + 1) % rooms.len();
     };
     paint();
 
