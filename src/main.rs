@@ -47,9 +47,11 @@ fn load_spritesheet<'a>(
     return pic_data
         // Divide the stream of bytes into discrete image sections.
         .chunks(IMAGE_ALIGNMENT)
+        // TODO: Validate and throw away chunks that don't match expected size
         // Ignore first row (CGA_HEADER, 4 bytes) and garbage after image data.
         // (IDK why CGA data is only 1/4 of the allotted space... ask John Murphy)
         .map(|x| &x[IMAGE_ROW_SIZE..CGA_IMAGE_SIZE])
+        // TODO: Validate and throw away chunks that don't match expected size
         // Turn byte chunks into images
         .map(|x| {
             // TODO: Is there a "best" pixel format for what I'm doing?
