@@ -7,13 +7,14 @@ This is separate from [explorer-utils](https://github.com/footballhead/explorer-
 ## Requirements
 
 * Rust 2018
+* [Dungeon Explorer files](https://www.dosgamesarchive.com/download/dungeon-explorer/). These must be extracted to the current working directory.
 
 ## Building and Running
 
-```
-cargo build
-cargo run
-```
+First, extract the Dungeon Explorer files to the current working directory. Then:
+
+    cargo build
+    cargo run
 
 ## Technical Documentation
 
