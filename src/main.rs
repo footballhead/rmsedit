@@ -28,19 +28,13 @@ const CGA_PALETTE: [Color; 4] = [
     Color::RGB(0xFF, 0xFF, 0xFF),
 ];
 
-fn main() {
-    let sdl_context = sdl2::init().unwrap();
-    let video_subsystem = sdl_context.video().unwrap();
-    let window = video_subsystem
-        .window("Hello", 640, 480)
-        .position_centered()
-        .build()
-        .unwrap();
-    let mut canvas = window.into_canvas().build().unwrap();
-    let texture_creator = canvas.texture_creator();
-
-    let pic_data = std::fs::read("CGAPICS.PIC").unwrap();
-    let textures: Vec<sdl2::render::Texture> = pic_data
+// Lifetime: the returned Textures have data owned by TextureCreator
+fn load_spritesheet<'a>(
+    filename: &str,
+    texture_creator: &'a sdl2::render::TextureCreator<sdl2::video::WindowContext>,
+) -> Vec<sdl2::render::Texture<'a>> {
+    let pic_data = std::fs::read(filename).unwrap();
+    return pic_data
         // Divide the stream of bytes into discrete image sections.
         .chunks(IMAGE_ALIGNMENT)
         // Ignore first row (CGA_HEADER, 4 bytes) and garbage after image data.
@@ -83,9 +77,25 @@ fn main() {
                 });
 
             // Return a texture
+            // This is the only place texture_creator is used
+            // To eliminate dependencies, could return a Vec<Vec<Surface>> then convert outside this fn
             surface.as_texture(&texture_creator).unwrap()
         })
         .collect();
+}
+
+fn main() {
+    let sdl_context = sdl2::init().unwrap();
+    let video_subsystem = sdl_context.video().unwrap();
+    let window = video_subsystem
+        .window("Hello", 640, 480)
+        .position_centered()
+        .build()
+        .unwrap();
+    let mut canvas = window.into_canvas().build().unwrap();
+    let texture_creator = canvas.texture_creator();
+
+    let textures = load_spritesheet("CGAPICS.PIC", &texture_creator);
 
     canvas.clear();
     canvas.copy(&textures[0], None, None).unwrap();
