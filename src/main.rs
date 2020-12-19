@@ -95,27 +95,24 @@ fn main() {
 
     let textures = load_spritesheet("CGAPICS.PIC", &texture_creator);
 
-    canvas.clear();
-    canvas.copy(&textures[0], None, None).unwrap();
-    canvas.present();
-
     let mut debug_image_index = 0;
+    let paint = &mut || {
+        canvas.clear();
+        canvas
+            .copy(&textures[debug_image_index], None, None)
+            .unwrap();
+        canvas.present();
+        debug_image_index = (debug_image_index + 1) % textures.len();
+    };
+    paint();
 
     let mut event_pump = sdl_context.event_pump().unwrap();
     'mainloop: loop {
         for event in event_pump.wait_iter() {
             match event {
                 sdl2::event::Event::Quit { .. } => break 'mainloop,
-                _ => {
-                    canvas.clear();
-                    canvas
-                        .copy(&textures[debug_image_index], None, None)
-                        .unwrap();
-                    canvas.present();
-                }
+                _ => paint(),
             }
-
-            debug_image_index = (debug_image_index + 1) % textures.len();
         }
     }
 }
