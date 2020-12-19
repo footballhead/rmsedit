@@ -1,4 +1,7 @@
 mod cga;
+mod crumb;
+
+mod tests;
 
 fn main() {
     let sdl_context = sdl2::init().unwrap();

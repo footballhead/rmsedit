@@ -3,12 +3,11 @@ use sdl2::pixels::PixelFormatEnum;
 use sdl2::rect::Rect;
 use sdl2::surface::Surface;
 
-const CRUMB_BITS: u8 = 2;
-const CRUMB_MASK: u8 = 0x3;
-const CRUMBS_PER_BYTE: usize = 4;
+use super::crumb;
+use super::crumb::crumb;
 
 const IMAGE_ROW_CRUMBS: usize = 16;
-const IMAGE_ROW_SIZE: usize = IMAGE_ROW_CRUMBS / CRUMBS_PER_BYTE;
+const IMAGE_ROW_SIZE: usize = IMAGE_ROW_CRUMBS / crumb::CRUMBS_PER_BYTE;
 
 // const CGA_HEADER: [u8; 4] = [0x0E, 0x00, 0x0E, 0x00];
 const CGA_IMAGE_SIZE: usize = 64;
@@ -27,12 +26,6 @@ const CGA_PALETTE: [Color; 4] = [
     Color::RGB(0xFF, 0x00, 0xFF),
     Color::RGB(0xFF, 0xFF, 0xFF),
 ];
-
-// higher part = more significant bit
-// e.g. 33221100
-fn crumb(val: &u8, part: u8) -> u8 {
-    (val >> (CRUMB_BITS * part)) & CRUMB_MASK
-}
 
 fn pixel(x: i32, y: i32) -> Rect {
     Rect::new(x, y, 1, 1)
