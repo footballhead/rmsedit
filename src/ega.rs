@@ -6,11 +6,12 @@ use sdl2::surface::Surface;
 use super::crumb;
 use super::crumb::crumb;
 
+pub const EGA_HEADER: [u8; 4] = [0x1D, 0x00, 0x0E, 0x00];
+
 // Width and height
 const IMAGE_DIMENSION: u32 = 15;
 const IMAGE_DIMENSION_USIZE: usize = IMAGE_DIMENSION as usize;
 
-const EGA_HEADER: [u8; 4] = [0x1D, 0x00, 0x0E, 0x00];
 const IMAGE_ALIGNMENT: usize = 256;
 // TODO static_assert IMAGE_DIMENSION * IMAGE_DIMENSION + EGA_HEADER.len() <= IMAGE_ALIGNMENT
 

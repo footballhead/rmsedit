@@ -6,10 +6,11 @@ use sdl2::surface::Surface;
 use super::crumb;
 use super::crumb::crumb;
 
+pub const CGA_HEADER: [u8; 4] = [0x0E, 0x00, 0x0E, 0x00];
+
 const IMAGE_ROW_CRUMBS: usize = 16;
 const IMAGE_ROW_SIZE: usize = IMAGE_ROW_CRUMBS / crumb::CRUMBS_PER_BYTE;
 
-// const CGA_HEADER: [u8; 4] = [0x0E, 0x00, 0x0E, 0x00];
 const CGA_IMAGE_SIZE: usize = 64;
 const IMAGE_ALIGNMENT: usize = CGA_IMAGE_SIZE * 4;
 // TODO: static_assert(CGA_IMAGE_SIZE < IMAGE_ALIGNMENT)
