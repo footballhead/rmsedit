@@ -78,7 +78,7 @@ fn load_spritesheet<'a>(
 
             // Return a texture
             // This is the only place texture_creator is used
-            // To eliminate dependencies, could return a Vec<Vec<Surface>> then convert outside this fn
+            // To eliminate dependencies, could return a Vec<Surface> then convert outside this fn
             surface.as_texture(&texture_creator).unwrap()
         })
         .collect();
