@@ -4,12 +4,14 @@ mod cga;
 mod crumb;
 mod ega;
 mod img;
+mod monster;
 mod rms;
 
 mod tests;
 
 fn main() {
     let rooms = rms::load_rooms("DUNGEON.RMS");
+    let monsters = monster::load_monsters("PYMON.DAT");
 
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
