@@ -1,5 +1,5 @@
 pub struct Monster {
-    gfx_id: u8, // TODO other fields
+    pub gfx_id: u8, // TODO other fields
 }
 
 const MONSTER_RECORD_SIZE: usize = 0x1F;

@@ -11,11 +11,17 @@ const ROOM_RECORD_MONSTER_COUNT_OFFSET: usize = 0x142;
 const ROOM_RECORD_NORTH_OFFSET: usize = 0x143;
 const ROOM_RECORD_ID_OFFSET: usize = 0x149;
 
+pub enum ObjectType {
+    None,
+    Monster,
+    Object
+}
+
 pub struct Room {
     unknown_a: u8,
     tiles: [u8; ROOM_AREA],
     objects: [u8; ROOM_AREA],
-    monster_id: u8,
+    pub monster_id: u8,
     monster_count: u8,
     nav_north: u8,
     nav_east: u8,
@@ -37,6 +43,17 @@ impl Room {
         let tile = self.tiles[(y * ROOM_WIDTH + x) as usize];
         // Different traps are different ASCII characters, which is what > 84 catches
         return if tile > 84 { 21 } else { tile };
+    }
+
+    pub fn get_object_type(&self, x: u32, y: u32) -> ObjectType {
+        let tile = self.objects[(y * ROOM_WIDTH + x) as usize];
+        if tile == 0 {
+            return ObjectType::None;
+        }
+        if tile <= 'c' as u8 {
+            return ObjectType::Monster;
+        }
+        return ObjectType::Object;
     }
 }
 

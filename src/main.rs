@@ -23,7 +23,8 @@ fn main() {
     let mut canvas = window.into_canvas().build().unwrap();
     let texture_creator = canvas.texture_creator();
 
-    let textures = img::load_spritesheet("EGAPICS.PIC", &texture_creator);
+    let tiles_atlas = img::load_spritesheet("EGAPICS.PIC", &texture_creator);
+    let monsters_atlas = img::load_spritesheet("PYMON.PIC", &texture_creator);
 
     let mut debug_room_index: usize = 0;
     let paint = &mut || {
@@ -38,7 +39,7 @@ fn main() {
 
                 canvas
                     .copy(
-                        &textures[tile as usize],
+                        &tiles_atlas[tile as usize],
                         None,
                         Rect::new(
                             (x * img::IMAGE_DIMENSION) as i32,
@@ -48,6 +49,26 @@ fn main() {
                         ),
                     )
                     .unwrap();
+
+                match rooms[debug_room_index].get_object_type(x, y) {
+                    rms::ObjectType::Monster => {
+                        let monster_id = rooms[debug_room_index].monster_id - 1;
+                        tile = monsters[monster_id as usize].gfx_id - 1;
+                        canvas
+                            .copy(
+                                &monsters_atlas[tile as usize],
+                                None,
+                                Rect::new(
+                                    (x * img::IMAGE_DIMENSION) as i32,
+                                    (y * img::IMAGE_DIMENSION) as i32,
+                                    img::IMAGE_DIMENSION,
+                                    img::IMAGE_DIMENSION,
+                                ),
+                            )
+                            .unwrap();
+                    }
+                    _ => {}
+                }
             }
         }
         canvas.present();
