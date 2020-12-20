@@ -46,6 +46,11 @@ impl Room {
         return if tile > 84 { 21 } else { tile };
     }
 
+    pub fn set_tile(&mut self, x: u32, y: u32, tile: u8) {
+        // TODO: Panic if x or y out of bounds
+        self.tiles[(y * ROOM_WIDTH + x) as usize] = tile;
+    }
+
     pub fn get_object_type(&self, x: u32, y: u32) -> ObjectType {
         // TODO: Panic if x or y out of bounds
         let tile = self.objects[(y * ROOM_WIDTH + x) as usize];

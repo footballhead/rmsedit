@@ -17,6 +17,32 @@ mod tests;
 
 struct PaintEvent {}
 
+struct EditorView {
+    /// X-coordinate on screen in pixels (origin is top-left)
+    pub x: u32,
+    /// Y-coordinate on screen in pixels (origin is top-left)
+    pub y: u32,
+    /// Width and height of on-screen tiles, in pixels
+    pub tile_dimensions: u32,
+}
+
+impl EditorView {
+    fn rect(&self, x: u32, y: u32) -> Rect {
+        Rect::new(
+            (self.x + x * self.tile_dimensions) as i32,
+            (self.y + y * self.tile_dimensions) as i32,
+            self.tile_dimensions,
+            self.tile_dimensions,
+        )
+    }
+    fn localize(&self, x: i32, y: i32) -> (i32, i32) {
+        (
+            (x - self.x as i32) / self.tile_dimensions as i32,
+            (y - self.y as i32) / self.tile_dimensions as i32,
+        )
+    }
+}
+
 fn apply_mask(image: &mut img::Image, mask_image: &img::Image) {
     image
         .pixels
@@ -64,7 +90,12 @@ fn request_paint(event_subsystem: &sdl2::EventSubsystem) {
 }
 
 fn main() {
-    let rooms = rms::load_rooms("DUNGEON.RMS");
+    let editor_view = EditorView {
+        x: 8,
+        y: 16,
+        tile_dimensions: img::IMAGE_DIMENSION * 2,
+    };
+    let mut rooms = rms::load_rooms("DUNGEON.RMS");
     let monsters = monster::load_monsters("PYMON.DAT");
 
     let sdl_context = sdl2::init().unwrap();
@@ -125,6 +156,7 @@ fn main() {
         .collect();
 
     let mut room_index: usize = 0;
+    let mut is_dragging = false;
 
     let mut event_pump = sdl_context.event_pump().unwrap();
     'mainloop: loop {
@@ -178,6 +210,43 @@ fn main() {
                     }
                     request_paint(&event_subsystem)
                 }
+                Event::MouseButtonDown {
+                    mouse_btn: sdl2::mouse::MouseButton::Left,
+                    x,
+                    y,
+                    ..
+                } => {
+                    is_dragging = true;
+                    let (room_x, room_y) = editor_view.localize(x, y);
+                    if room_x >= 0
+                        && room_y >= 0
+                        && room_x < rms::ROOM_WIDTH as i32
+                        && room_y < rms::ROOM_HEIGHT as i32
+                    {
+                        rooms[room_index].set_tile(room_x as u32, room_y as u32, 1);
+                        request_paint(&event_subsystem);
+                    }
+                }
+                Event::MouseButtonUp {
+                    mouse_btn: sdl2::mouse::MouseButton::Left,
+                    ..
+                } => {
+                    is_dragging = false;
+                }
+                Event::MouseMotion { x, y, .. } => {
+                    if !is_dragging {
+                        break;
+                    }
+                    let (room_x, room_y) = editor_view.localize(x, y);
+                    if room_x >= 0
+                        && room_y >= 0
+                        && room_x < rms::ROOM_WIDTH as i32
+                        && room_y < rms::ROOM_HEIGHT as i32
+                    {
+                        rooms[room_index].set_tile(room_x as u32, room_y as u32, 1);
+                        request_paint(&event_subsystem);
+                    }
+                }
                 Event::User { .. } => {
                     // HACK! The Rust-SDL2 API wants me to do something like:
                     // if event.is_user_event() {
@@ -189,12 +258,7 @@ fn main() {
                     canvas.clear();
                     for y in 0..rms::ROOM_HEIGHT {
                         for x in 0..rms::ROOM_WIDTH {
-                            let draw_rect = Rect::new(
-                                (x * img::IMAGE_DIMENSION) as i32,
-                                (y * img::IMAGE_DIMENSION) as i32,
-                                img::IMAGE_DIMENSION,
-                                img::IMAGE_DIMENSION,
-                            );
+                            let draw_rect = editor_view.rect(x, y);
 
                             let mut tile = rooms[room_index].get_tile(x, y);
                             if tile > 0 {
