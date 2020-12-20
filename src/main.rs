@@ -13,6 +13,18 @@ mod rms;
 
 mod tests;
 
+fn apply_mask(image: &mut img::Image, mask_image: &img::Image) {
+    image
+        .pixels
+        .iter_mut()
+        .zip(mask_image.pixels.iter())
+        .for_each(|(pixel, mask)| {
+            if *mask == img::Color::rgb(0xFF, 0xFF, 0xFF) {
+                pixel.a = 0;
+            }
+        });
+}
+
 // TODO: Return Result<> since multiple operations can fail?
 fn as_texture<'a, T>(image: &img::Image, texture_creator: &'a TextureCreator<T>) -> Texture<'a> {
     fn pixel(x: i32, y: i32) -> Rect {
@@ -56,11 +68,18 @@ fn main() {
     let mut canvas = window.into_canvas().build().unwrap();
     let texture_creator = canvas.texture_creator();
 
+    let mut monster_color = img::load_spritesheet("PYMON.PIC");
+    let monster_mask = img::load_spritesheet("PYMASK.PIC");
+    monster_color
+        .iter_mut()
+        .zip(monster_mask.iter())
+        .for_each(|(color, mask)| apply_mask(color, mask));
+
     let tiles_atlas: Vec<sdl2::render::Texture> = img::load_spritesheet("EGAPICS.PIC")
         .iter()
         .map(|x| as_texture(x, &texture_creator))
         .collect();
-    let monsters_atlas: Vec<sdl2::render::Texture> = img::load_spritesheet("PYMON.PIC")
+    let monsters_atlas: Vec<sdl2::render::Texture> = monster_color
         .iter()
         .map(|x| as_texture(x, &texture_creator))
         .collect();

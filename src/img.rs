@@ -5,7 +5,7 @@ use super::ega;
 pub const IMAGE_DIMENSION: u32 = 15;
 pub const IMAGE_DIMENSION_USIZE: usize = IMAGE_DIMENSION as usize;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Eq, PartialEq)]
 pub struct Color {
     pub r: u8,
     pub g: u8,
