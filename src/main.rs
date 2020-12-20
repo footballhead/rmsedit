@@ -90,7 +90,7 @@ fn main() {
     // a mutable reference
     let mut tiles_color = img::load_spritesheet("EGAPICS.PIC");
     let tiles_mask = img::load_spritesheet("EGAPICS.PIC");
-    // Only a handfil of EGAPICS/CGAPICS tiles have masks.
+    // Only a handful of EGAPICS/CGAPICS tiles have masks.
     vec![
         (10, 64), // Attack effect
         (11, 69), // Hit explosion
