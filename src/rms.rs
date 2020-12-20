@@ -46,6 +46,7 @@ impl Room {
     }
 
     pub fn get_object_type(&self, x: u32, y: u32) -> ObjectType {
+        // TODO: Panic if x or y out of bounds
         let tile = self.objects[(y * ROOM_WIDTH + x) as usize];
         if tile == 0 {
             return ObjectType::None;
@@ -54,6 +55,38 @@ impl Room {
             return ObjectType::Monster;
         }
         return ObjectType::Object;
+    }
+
+    pub fn get_object(&self, x: u32, y: u32) -> u8 {
+        // TODO: Panic if x or y out of bounds
+        let tile = self.objects[(y * ROOM_WIDTH + x) as usize];
+        return get_object_tile(tile as char)
+    }
+}
+
+fn get_object_tile(object: char) -> u8 {
+    match object {
+        'd' => return 47, // Magical darkness
+        'e' => return 21, // Treasure chest
+        'f' => return 46, // Smoke
+        'g' => return 29, // Movable block
+        'h' => return 37, // Door (vertical)
+        'i' => return 36, // Door (horizontal)
+        'j' => return 0, // TODO: Funny looking chest
+        'k' => return 0, // TODO: Soft section of wall
+        'l' => return 42, // Soft piece of wall
+        'm' => return 18, // Soft pile of rubble
+        'n' => return 22, // Old body
+        'o' => return 17, // Old bones
+        'p' => return 49, // Old stone coffin
+        'q' => return 54, // Old grave
+        'r' => return 0, // TODO: Movable glass block
+        's' => return 0, // TODO: Old skeleton
+        't' => return 0, // TODO: Old skeleton
+        'u' => return 0, // TODO: Hollow obilisk
+        'v' => return 82, // "Just some blood"
+        'w' => return 0, // TODO: Stone marker
+        _ => return 0,
     }
 }
 

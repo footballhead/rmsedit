@@ -31,40 +31,39 @@ fn main() {
         canvas.clear();
         for y in 0..rms::ROOM_HEIGHT {
             for x in 0..rms::ROOM_WIDTH {
+                let draw_rect = Rect::new(
+                    (x * img::IMAGE_DIMENSION) as i32,
+                    (y * img::IMAGE_DIMENSION) as i32,
+                    img::IMAGE_DIMENSION,
+                    img::IMAGE_DIMENSION,
+                );
+
                 let mut tile = rooms[debug_room_index].get_tile(x, y);
-                if tile == 0 {
-                    continue;
+                if tile > 0 {
+                    tile -= 1;
+                    canvas
+                        .copy(&tiles_atlas[tile as usize], None, draw_rect)
+                        .unwrap();
                 }
-                tile -= 1;
 
-                canvas
-                    .copy(
-                        &tiles_atlas[tile as usize],
-                        None,
-                        Rect::new(
-                            (x * img::IMAGE_DIMENSION) as i32,
-                            (y * img::IMAGE_DIMENSION) as i32,
-                            img::IMAGE_DIMENSION,
-                            img::IMAGE_DIMENSION,
-                        ),
-                    )
-                    .unwrap();
-
+                // TODO: Transparency
                 match rooms[debug_room_index].get_object_type(x, y) {
                     rms::ObjectType::Monster => {
                         let monster_id = rooms[debug_room_index].monster_id - 1;
                         tile = monsters[monster_id as usize].gfx_id - 1;
                         canvas
-                            .copy(
-                                &monsters_atlas[tile as usize],
-                                None,
-                                Rect::new(
-                                    (x * img::IMAGE_DIMENSION) as i32,
-                                    (y * img::IMAGE_DIMENSION) as i32,
-                                    img::IMAGE_DIMENSION,
-                                    img::IMAGE_DIMENSION,
-                                ),
-                            )
+                            .copy(&monsters_atlas[tile as usize], None, draw_rect)
+                            .unwrap();
+                    }
+                    rms::ObjectType::Object => {
+                        tile = rooms[debug_room_index].get_object(x, y);
+                        if tile == 0 {
+                            continue;
+                        }
+                        // TODO: For some reason, I made it so I don't need to -1 here... when I probably should since it's ambiguous whether 0 is the "no tile" sentinel or literally tile 0
+                        // tile -= 1;
+                        canvas
+                            .copy(&tiles_atlas[tile as usize], None, draw_rect)
                             .unwrap();
                     }
                     _ => {}
