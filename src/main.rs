@@ -1,13 +1,46 @@
+use sdl2::pixels::PixelFormatEnum;
 use sdl2::rect::Rect;
+use sdl2::render::Texture;
+use sdl2::render::TextureCreator;
+use sdl2::surface::Surface;
 
 mod cga;
 mod crumb;
-mod ega;
+//mod ega; // DEBUG! Temporarily turn off EGA during refactor
 mod img;
 mod monster;
 mod rms;
 
 mod tests;
+
+// TODO: Return Result<> since multiple operations can fail?
+fn as_texture<'a, T>(image: &img::Image, texture_creator: &'a TextureCreator<T>) -> Texture<'a> {
+    fn pixel(x: i32, y: i32) -> Rect {
+        Rect::new(x, y, 1, 1)
+    }
+    fn wrap_color(color: &img::Color) -> sdl2::pixels::Color {
+        sdl2::pixels::Color::RGBA(color.r, color.g, color.b, color.a)
+    }
+    // TODO: Is there a best pixel format for what I'm doing?
+    // E.g. is ARGB8888 better than ABGR8888? What about ARGB32? How do I tell?
+    let mut surface = Surface::new(
+        image.width as u32,
+        image.height as u32,
+        PixelFormatEnum::ARGB8888,
+    )
+    .unwrap();
+
+    image.pixels.iter().enumerate().for_each(|(i, x)| {
+        surface
+            .fill_rect(
+                pixel((i % image.width) as i32, (i / image.width) as i32),
+                wrap_color(x),
+            )
+            .unwrap()
+    });
+
+    return surface.as_texture(texture_creator).unwrap();
+}
 
 fn main() {
     let rooms = rms::load_rooms("DUNGEON.RMS");
@@ -25,11 +58,11 @@ fn main() {
 
     let tiles_atlas: Vec<sdl2::render::Texture> = img::load_spritesheet("EGAPICS.PIC")
         .iter()
-        .map(|x| x.as_texture(&texture_creator).unwrap())
+        .map(|x| as_texture(x, &texture_creator))
         .collect();
     let monsters_atlas: Vec<sdl2::render::Texture> = img::load_spritesheet("PYMON.PIC")
         .iter()
-        .map(|x| x.as_texture(&texture_creator).unwrap())
+        .map(|x| as_texture(x, &texture_creator))
         .collect();
 
     let mut debug_room_index: usize = 0;

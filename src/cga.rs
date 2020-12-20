@@ -1,8 +1,3 @@
-use sdl2::pixels::Color;
-use sdl2::pixels::PixelFormatEnum;
-use sdl2::rect::Rect;
-use sdl2::surface::Surface;
-
 use super::crumb;
 use super::crumb::crumb;
 use super::img;
@@ -20,19 +15,15 @@ const IMAGE_ALIGNMENT: usize = CGA_IMAGE_SIZE * 4;
 // TODO: static_assert((CGA_IMAGE_SIZE - IMAGE_ROW_SIZE) / IMAGE_ROW_SIZE == IMAGE_DIMENSION)
 
 // TODO: prefer "dark" CGA palette (whatever DOSBox uses)
-const CGA_PALETTE: [Color; 4] = [
-    Color::RGB(0x00, 0x00, 0x00),
-    Color::RGB(0x00, 0xFF, 0xFF),
-    Color::RGB(0xFF, 0x00, 0xFF),
-    Color::RGB(0xFF, 0xFF, 0xFF),
+const CGA_PALETTE: [img::Color; 4] = [
+    img::Color::rgb(0x00, 0x00, 0x00),
+    img::Color::rgb(0x00, 0xFF, 0xFF),
+    img::Color::rgb(0xFF, 0x00, 0xFF),
+    img::Color::rgb(0xFF, 0xFF, 0xFF),
 ];
 
-fn pixel(x: i32, y: i32) -> Rect {
-    Rect::new(x, y, 1, 1)
-}
-
 // Lifetime: the returned Textures have data owned by TextureCreator
-pub fn load_spritesheet(filename: &str) -> Vec<Surface> {
+pub fn load_spritesheet(filename: &str) -> Vec<img::Image> {
     let pic_data = std::fs::read(filename).unwrap();
     return pic_data
         // Divide the stream of bytes into discrete image sections.
@@ -44,34 +35,20 @@ pub fn load_spritesheet(filename: &str) -> Vec<Surface> {
         // TODO: Validate and throw away chunks that don't match expected size
         // Turn byte chunks into images
         .map(|x| {
-            // TODO: Is there a "best" pixel format for what I'm doing?
-            // E.g. is ARGB8888 better? or ABGR8888? How do I tell? What about ARGB32?
-            let mut surface = Surface::new(
-                img::IMAGE_DIMENSION,
-                img::IMAGE_DIMENSION,
-                PixelFormatEnum::ARGB8888,
-            )
-            .unwrap();
-
-            x.iter()
-                // Turn 1 byte into 4 crumbs
-                .flat_map(|xx| vec![crumb(xx, 3), crumb(xx, 2), crumb(xx, 1), crumb(xx, 0)])
-                // The last crumb of each row is garbage
-                .enumerate()
-                .filter(|&(i, _)| i % IMAGE_ROW_CRUMBS < (img::IMAGE_DIMENSION as usize))
-                // Draw pixels
-                .for_each(|(i, x)| {
-                    surface
-                        .fill_rect(
-                            // Since i is leftover from the previous filter, we use that row size
-                            // (IMAGE_ROW_CRUMBS) instead of the actual row size (IMAGE_DIMENSION)
-                            pixel((i % IMAGE_ROW_CRUMBS) as i32, (i / IMAGE_ROW_CRUMBS) as i32),
-                            CGA_PALETTE[x as usize],
-                        )
-                        .unwrap()
-                });
-
-            surface
+            img::Image {
+                width: img::IMAGE_DIMENSION_USIZE,
+                height: img::IMAGE_DIMENSION_USIZE,
+                pixels: x
+                    .iter()
+                    // Turn 1 byte into 4 crumbs
+                    .flat_map(|xx| vec![crumb(xx, 3), crumb(xx, 2), crumb(xx, 1), crumb(xx, 0)])
+                    // The last crumb of each row is garbage
+                    .enumerate()
+                    .filter(|&(i, _)| i % IMAGE_ROW_CRUMBS < (img::IMAGE_DIMENSION as usize))
+                    // Draw pixels
+                    .map(|(_, x)| CGA_PALETTE[x as usize])
+                    .collect(),
+            }
         })
         .collect();
 }
