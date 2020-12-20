@@ -1,5 +1,5 @@
 use super::cga;
-// use super::ega; // DEBUG!
+use super::ega;
 
 /// Width and height
 pub const IMAGE_DIMENSION: u32 = 15;
@@ -40,7 +40,7 @@ pub fn load_spritesheet(filename: &str) -> Vec<Image> {
     let pic_data = std::fs::read(filename).unwrap();
     match header_match(&pic_data[0..4]) {
         cga::CGA_HEADER => return cga::load_spritesheet(filename),
-        // ega::EGA_HEADER => return ega::load_spritesheet(filename), // DEBUG!
+        ega::EGA_HEADER => return ega::load_spritesheet(filename),
         _ => panic!("no matching header"), // TODO return result with error instead
     }
 }

@@ -6,7 +6,7 @@ use sdl2::surface::Surface;
 
 mod cga;
 mod crumb;
-//mod ega; // DEBUG! Temporarily turn off EGA during refactor
+mod ega;
 mod img;
 mod monster;
 mod rms;
