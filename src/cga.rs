@@ -32,10 +32,7 @@ fn pixel(x: i32, y: i32) -> Rect {
 }
 
 // Lifetime: the returned Textures have data owned by TextureCreator
-pub fn load_spritesheet<'a>(
-    filename: &str,
-    texture_creator: &'a sdl2::render::TextureCreator<sdl2::video::WindowContext>,
-) -> Vec<sdl2::render::Texture<'a>> {
+pub fn load_spritesheet(filename: &str) -> Vec<Surface> {
     let pic_data = std::fs::read(filename).unwrap();
     return pic_data
         // Divide the stream of bytes into discrete image sections.
@@ -74,10 +71,7 @@ pub fn load_spritesheet<'a>(
                         .unwrap()
                 });
 
-            // Return a texture
-            // This is the only place texture_creator is used
-            // To eliminate dependencies, could return a Vec<Surface> then convert outside this fn
-            surface.as_texture(&texture_creator).unwrap()
+            surface
         })
         .collect();
 }

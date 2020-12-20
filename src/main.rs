@@ -23,8 +23,14 @@ fn main() {
     let mut canvas = window.into_canvas().build().unwrap();
     let texture_creator = canvas.texture_creator();
 
-    let tiles_atlas = img::load_spritesheet("EGAPICS.PIC", &texture_creator);
-    let monsters_atlas = img::load_spritesheet("PYMON.PIC", &texture_creator);
+    let tiles_atlas: Vec<sdl2::render::Texture> = img::load_spritesheet("EGAPICS.PIC")
+        .iter()
+        .map(|x| x.as_texture(&texture_creator).unwrap())
+        .collect();
+    let monsters_atlas: Vec<sdl2::render::Texture> = img::load_spritesheet("PYMON.PIC")
+        .iter()
+        .map(|x| x.as_texture(&texture_creator).unwrap())
+        .collect();
 
     let mut debug_room_index: usize = 0;
     let paint = &mut || {
