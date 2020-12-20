@@ -48,10 +48,11 @@ pub fn load_spritesheet<'a>(
         // Turn byte chunks into images
         .map(|x| {
             // TODO: Is there a "best" pixel format for what I'm doing?
+            // E.g. is ARGB8888 better? or ABGR8888? How do I tell? What about ARGB32?
             let mut surface = Surface::new(
                 img::IMAGE_DIMENSION,
                 img::IMAGE_DIMENSION,
-                PixelFormatEnum::RGB24,
+                PixelFormatEnum::ARGB8888,
             )
             .unwrap();
 

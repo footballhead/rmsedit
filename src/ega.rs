@@ -92,7 +92,7 @@ pub fn load_spritesheet<'a>(
             let mut surface = Surface::new(
                 img::IMAGE_DIMENSION,
                 img::IMAGE_DIMENSION,
-                PixelFormatEnum::RGB24,
+                PixelFormatEnum::ARGB8888,
             )
             .unwrap();
 
