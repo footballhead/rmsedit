@@ -1,4 +1,5 @@
 use sdl2::event::Event;
+use sdl2::keyboard::Scancode;
 use sdl2::pixels::PixelFormatEnum;
 use sdl2::rect::Rect;
 use sdl2::render::Texture;
@@ -55,6 +56,11 @@ fn as_texture<'a, T>(image: &img::Image, texture_creator: &'a TextureCreator<T>)
     });
 
     return surface.as_texture(texture_creator).unwrap();
+}
+
+/// Convenience function for pushing a paint event
+fn request_paint(event_subsystem: &sdl2::EventSubsystem) {
+    event_subsystem.push_custom_event(PaintEvent {}).unwrap();
 }
 
 fn main() {
@@ -118,13 +124,60 @@ fn main() {
         .map(|x| as_texture(x, &texture_creator))
         .collect();
 
-    let mut debug_room_index: usize = 0;
+    let mut room_index: usize = 0;
 
     let mut event_pump = sdl_context.event_pump().unwrap();
     'mainloop: loop {
         for event in event_pump.wait_iter() {
             match event {
                 Event::Quit { .. } => break 'mainloop,
+                Event::KeyDown {
+                    scancode: Some(Scancode::Up),
+                    ..
+                } => {
+                    if rooms[room_index].nav_north > 0 {
+                        room_index = (rooms[room_index].nav_north - 1) as usize;
+                    }
+                    request_paint(&event_subsystem)
+                }
+                Event::KeyDown {
+                    scancode: Some(Scancode::Down),
+                    ..
+                } => {
+                    if rooms[room_index].nav_south > 0 {
+                        room_index = (rooms[room_index].nav_south - 1) as usize;
+                    }
+                    request_paint(&event_subsystem)
+                }
+                Event::KeyDown {
+                    scancode: Some(Scancode::Right),
+                    ..
+                } => {
+                    if rooms[room_index].nav_east > 0 {
+                        room_index = (rooms[room_index].nav_east - 1) as usize;
+                    }
+                    request_paint(&event_subsystem)
+                }
+                Event::KeyDown {
+                    scancode: Some(Scancode::Left),
+                    ..
+                } => {
+                    if rooms[room_index].nav_west > 0 {
+                        room_index = (rooms[room_index].nav_west - 1) as usize;
+                    }
+                    request_paint(&event_subsystem)
+                }
+                Event::KeyDown {
+                    scancode: Some(Scancode::C),
+                    ..
+                } => {
+                    if rooms[room_index].nav_up > 0 {
+                        room_index = (rooms[room_index].nav_up - 1) as usize;
+                    } else if rooms[room_index].nav_down > 0 {
+                        room_index = (rooms[room_index].nav_down - 1) as usize;
+                    }
+                    request_paint(&event_subsystem)
+                }
                 Event::User { .. } => {
                     // HACK! The Rust-SDL2 API wants me to do something like:
                     // if event.is_user_event() {
@@ -143,7 +196,7 @@ fn main() {
                                 img::IMAGE_DIMENSION,
                             );
 
-                            let mut tile = rooms[debug_room_index].get_tile(x, y);
+                            let mut tile = rooms[room_index].get_tile(x, y);
                             if tile > 0 {
                                 tile -= 1;
                                 canvas
@@ -151,16 +204,16 @@ fn main() {
                                     .unwrap();
                             }
 
-                            match rooms[debug_room_index].get_object_type(x, y) {
+                            match rooms[room_index].get_object_type(x, y) {
                                 rms::ObjectType::Monster => {
-                                    let monster_id = rooms[debug_room_index].monster_id - 1;
+                                    let monster_id = rooms[room_index].monster_id - 1;
                                     tile = monsters[monster_id as usize].gfx_id - 1;
                                     canvas
                                         .copy(&monsters_atlas[tile as usize], None, draw_rect)
                                         .unwrap();
                                 }
                                 rms::ObjectType::Object => {
-                                    tile = rooms[debug_room_index].get_object(x, y);
+                                    tile = rooms[room_index].get_object(x, y);
                                     if tile == 0 {
                                         continue;
                                     }
@@ -176,15 +229,11 @@ fn main() {
                         }
                     }
                     canvas.present();
-
-                    debug_room_index = (debug_room_index + 1) % rooms.len();
                 }
                 // Convert all other events into paint events (keep the screen fresh)
                 // TODO: Make sure this works on stacking window managers which need constant
                 // redraws of dirty areas (especially from other windows overlapping)
-                _ => {
-                    event_subsystem.push_custom_event(PaintEvent {}).unwrap();
-                }
+                _ => request_paint(&event_subsystem),
             }
         }
     }
