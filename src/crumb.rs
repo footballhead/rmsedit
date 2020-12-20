@@ -7,11 +7,13 @@ pub const CRUMBS_PER_BYTE: usize = 4;
 /// # Arguments
 ///
 /// * `val`: The 8-bit value from which to extract
-/// * `part`: Which crumb subdivision of val to extract
+/// * `part`: Which crumb subdivision of val to extract. There are 4 valid subdivisions, as 
+/// demonstrated by the example.
 ///
 /// # Examples
 ///
 /// ```
+/// // Underscores are added to illustrate crumb part divisions.
 /// let foo = 0b11_10_01_00u8;
 /// assert_eq!(crumb(&foo, 0), 0b00u8);
 /// assert_eq!(crumb(&foo, 1), 0b01u8);
