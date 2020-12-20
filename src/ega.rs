@@ -35,7 +35,6 @@ const EGA_PALETTE: [img::Color; 16] = [
     img::Color::rgb(0xFF, 0xFF, 0xFF),
 ];
 
-// Lifetime: the returned Textures have data owned by TextureCreator
 pub fn load_spritesheet(filename: &str) -> Vec<img::Image> {
     let pic_data = std::fs::read(filename).unwrap();
     return pic_data
