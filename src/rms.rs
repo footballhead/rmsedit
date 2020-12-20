@@ -162,6 +162,8 @@ pub fn save_rooms(rooms: &Vec<Room>, filename: &str) -> std::io::Result<()> {
         file.write(&vec![room.unknown_d])?;
         let mut name_pstr = pascal::to_pascal_string(&room.name, ROOM_RECORD_NAME_MAX_LENGTH);
         // Strings are up to ROOM_RECORD_NAME_MAX_LENGTH long, 0 padded otherwise
+        // TODO: This is an unproven assumption. Look at how EXPLORER.EXE loads the record.
+        // Make sure we're not trampling important data.
         name_pstr.resize(ROOM_RECORD_NAME_MAX_LENGTH as usize, 0);
         file.write(&name_pstr)?;
     }
