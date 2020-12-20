@@ -180,6 +180,8 @@ fn main() {
                     debug_room_index = (debug_room_index + 1) % rooms.len();
                 }
                 // Convert all other events into paint events (keep the screen fresh)
+                // TODO: Make sure this works on stacking window managers which need constant
+                // redraws of dirty areas (especially from other windows overlapping)
                 _ => {
                     event_subsystem.push_custom_event(PaintEvent {}).unwrap();
                 }
