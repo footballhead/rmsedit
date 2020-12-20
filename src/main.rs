@@ -75,7 +75,32 @@ fn main() {
         .zip(monster_mask.iter())
         .for_each(|(color, mask)| apply_mask(color, mask));
 
-    let tiles_atlas: Vec<sdl2::render::Texture> = img::load_spritesheet("EGAPICS.PIC")
+    // EGAPICS/CGAPICS contains both color data and masks. In order to use apply_mask
+    // (inside Rust's borrow rules) I load a second immutable copy. Alternatively, I could
+    // just implement Copy on Image... Or I could return a copy from apply_mask and not take
+    // a mutable reference
+    let mut tiles_color = img::load_spritesheet("EGAPICS.PIC");
+    let tiles_mask = img::load_spritesheet("EGAPICS.PIC");
+    // Only a handfil of EGAPICS/CGAPICS tiles have masks.
+    vec![
+        (10, 64), // Attack effect
+        (11, 69), // Hit explosion
+        (18, 71), // Old bones
+        (22, 65), // Treasure chest
+        (23, 70), // Old body
+        (24, 68), // Player
+        (47, 67), // Smoke
+        (50, 72), // Old stone coffin
+        (55, 66), // Old grave
+        (60, 82), // ???
+        (75, 73), // ???
+        (76, 74), // ???
+        (83, 84), // Some old blood
+    ]
+    .iter()
+    .for_each(|(tile, mask)| apply_mask(&mut tiles_color[*tile - 1], &tiles_mask[*mask - 1]));
+
+    let tiles_atlas: Vec<sdl2::render::Texture> = tiles_color
         .iter()
         .map(|x| as_texture(x, &texture_creator))
         .collect();
@@ -104,7 +129,6 @@ fn main() {
                         .unwrap();
                 }
 
-                // TODO: Transparency
                 match rooms[debug_room_index].get_object_type(x, y) {
                     rms::ObjectType::Monster => {
                         let monster_id = rooms[debug_room_index].monster_id - 1;
