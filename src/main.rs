@@ -211,6 +211,16 @@ fn main() {
                     }
                     request_paint(&event_subsystem)
                 }
+                Event::KeyDown {
+                    scancode: Some(Scancode::S),
+                    ..
+                } => {
+                    // TODO: This is a temporary filename for testing
+                    rms::save_rooms(&rooms, "TEST.RMS").unwrap();
+                    // TODO: This is also temporary to ease copy-pasting and loading in EXPLORER.EXE
+                    std::fs::write("TEST.OVR", "Made with rmsedit").unwrap();
+                    println!("Saved to TEST.RMS and TEST.OVR");
+                }
                 Event::MouseButtonDown {
                     mouse_btn: sdl2::mouse::MouseButton::Left,
                     x,

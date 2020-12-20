@@ -11,9 +11,18 @@ fn crumb_basic_test() {
 }
 
 #[test]
-fn pascal_string_test() {
+fn pascal_from_pascal_string_test() {
     use super::pascal::from_pascal_string;
 
     assert_eq!(from_pascal_string(b"\x0BHello world"), "Hello world");
     assert_eq!(from_pascal_string(b"\x0AHello world"), "Hello worl");
+}
+
+#[test]
+fn pascal_to_pascal_string_test() {
+    use super::pascal::to_pascal_string;
+
+    assert_eq!(to_pascal_string("", 0xFF), b"\x00");
+    assert_eq!(to_pascal_string("Hello world", 0x00), b"\x00");
+    assert_eq!(to_pascal_string("Hello world", 0xFF), b"\x0BHello world");
 }

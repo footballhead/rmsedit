@@ -1,3 +1,5 @@
+use std::io::Write;
+
 use super::pascal;
 
 pub const ROOM_WIDTH: u32 = 20;
@@ -18,12 +20,15 @@ const ROOM_RECORD_UNKNOWN_C_OFFSET: usize = 0x14B;
 const ROOM_RECORD_UNKNOWN_D_OFFSET: usize = 0x14C;
 const ROOM_RECORD_NAME_OFFSET: usize = 0x14D;
 
+const ROOM_RECORD_NAME_MAX_LENGTH: u8 = (ROOM_RECORD_SIZE - ROOM_RECORD_NAME_OFFSET) as u8;
+
 pub enum ObjectType {
     None,
     Monster,
     Object,
 }
 
+/// TODO: Figure out and document unknowns
 pub struct Room {
     unknown_a: u8,
     tiles: [u8; ROOM_AREA],
@@ -134,4 +139,31 @@ pub fn load_rooms(filename: &str) -> Vec<Room> {
             room
         })
         .collect();
+}
+
+pub fn save_rooms(rooms: &Vec<Room>, filename: &str) -> std::io::Result<()> {
+    // TODO: Is there a more Rust-idiomatic way of data serialization?
+    let mut file = std::fs::File::create(filename)?;
+    for room in rooms {
+        file.write(&vec![room.unknown_a])?;
+        file.write(&room.tiles)?;
+        file.write(&room.objects)?;
+        file.write(&vec![room.monster_id])?;
+        file.write(&vec![room.monster_count])?;
+        file.write(&vec![room.nav_north])?;
+        file.write(&vec![room.nav_east])?;
+        file.write(&vec![room.nav_south])?;
+        file.write(&vec![room.nav_west])?;
+        file.write(&vec![room.nav_up])?;
+        file.write(&vec![room.nav_down])?;
+        file.write(&vec![room.id])?;
+        file.write(&vec![room.unknown_b])?;
+        file.write(&vec![room.unknown_c])?;
+        file.write(&vec![room.unknown_d])?;
+        let mut name_pstr = pascal::to_pascal_string(&room.name, ROOM_RECORD_NAME_MAX_LENGTH);
+        // Strings are up to ROOM_RECORD_NAME_MAX_LENGTH long, 0 padded otherwise
+        name_pstr.resize(ROOM_RECORD_NAME_MAX_LENGTH as usize, 0);
+        file.write(&name_pstr)?;
+    }
+    Ok(())
 }
