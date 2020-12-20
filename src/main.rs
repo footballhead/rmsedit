@@ -11,6 +11,7 @@ mod crumb;
 mod ega;
 mod img;
 mod monster;
+mod pascal;
 mod rms;
 
 mod tests;

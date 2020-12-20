@@ -1,20 +1,27 @@
+use super::pascal;
+
 pub const ROOM_WIDTH: u32 = 20;
 pub const ROOM_HEIGHT: u32 = 8;
 
 const ROOM_AREA: usize = (ROOM_WIDTH * ROOM_HEIGHT) as usize;
 
 const ROOM_RECORD_SIZE: usize = 0x168;
+const ROOM_RECORD_UNKNOWN_A_OFFSET: usize = 0x0;
 const ROOM_RECORD_TILE_OFFSET: usize = 0x1;
 const ROOM_RECORD_OBJECT_OFFSET: usize = 0xA1;
 const ROOM_RECORD_MONSTER_ID_OFFSET: usize = 0x141;
 const ROOM_RECORD_MONSTER_COUNT_OFFSET: usize = 0x142;
 const ROOM_RECORD_NORTH_OFFSET: usize = 0x143;
 const ROOM_RECORD_ID_OFFSET: usize = 0x149;
+const ROOM_RECORD_UNKNOWN_B_OFFSET: usize = 0x14A;
+const ROOM_RECORD_UNKNOWN_C_OFFSET: usize = 0x14B;
+const ROOM_RECORD_UNKNOWN_D_OFFSET: usize = 0x14C;
+const ROOM_RECORD_NAME_OFFSET: usize = 0x14D;
 
 pub enum ObjectType {
     None,
     Monster,
-    Object
+    Object,
 }
 
 pub struct Room {
@@ -34,7 +41,7 @@ pub struct Room {
     unknown_b: u8,
     unknown_c: u8,
     unknown_d: u8,
-    name: String,
+    pub name: String,
 }
 
 impl Room {
@@ -66,7 +73,7 @@ impl Room {
     pub fn get_object(&self, x: u32, y: u32) -> u8 {
         // TODO: Panic if x or y out of bounds
         let tile = self.objects[(y * ROOM_WIDTH + x) as usize];
-        return get_object_tile(tile as char)
+        return get_object_tile(tile as char);
     }
 }
 
@@ -78,20 +85,20 @@ fn get_object_tile(object: char) -> u8 {
         'g' => return 29, // Movable block
         'h' => return 37, // Door (vertical)
         'i' => return 36, // Door (horizontal)
-        'j' => return 0, // TODO: Funny looking chest
-        'k' => return 0, // TODO: Soft section of wall
+        'j' => return 0,  // TODO: Funny looking chest
+        'k' => return 0,  // TODO: Soft section of wall
         'l' => return 42, // Soft piece of wall
         'm' => return 18, // Soft pile of rubble
         'n' => return 22, // Old body
         'o' => return 17, // Old bones
         'p' => return 49, // Old stone coffin
         'q' => return 54, // Old grave
-        'r' => return 0, // TODO: Movable glass block
-        's' => return 0, // TODO: Old skeleton
-        't' => return 0, // TODO: Old skeleton
-        'u' => return 0, // TODO: Hollow obilisk
+        'r' => return 0,  // TODO: Movable glass block
+        's' => return 0,  // TODO: Old skeleton
+        't' => return 0,  // TODO: Old skeleton
+        'u' => return 0,  // TODO: Hollow obilisk
         'v' => return 82, // "Just some blood"
-        'w' => return 0, // TODO: Stone marker
+        'w' => return 0,  // TODO: Stone marker
         _ => return 0,
     }
 }
@@ -102,7 +109,7 @@ pub fn load_rooms(filename: &str) -> Vec<Room> {
         .chunks(ROOM_RECORD_SIZE)
         .map(|x| {
             let mut room = Room {
-                unknown_a: 0,
+                unknown_a: x[ROOM_RECORD_UNKNOWN_A_OFFSET],
                 tiles: [0; ROOM_AREA],
                 objects: [0; ROOM_AREA],
                 monster_id: x[ROOM_RECORD_MONSTER_ID_OFFSET],
@@ -114,10 +121,10 @@ pub fn load_rooms(filename: &str) -> Vec<Room> {
                 nav_up: x[ROOM_RECORD_NORTH_OFFSET + 4],
                 nav_down: x[ROOM_RECORD_NORTH_OFFSET + 5],
                 id: x[ROOM_RECORD_ID_OFFSET],
-                unknown_b: 0,
-                unknown_c: 0,
-                unknown_d: 0,
-                name: String::from("UNIMPLEMENTED"),
+                unknown_b: x[ROOM_RECORD_UNKNOWN_B_OFFSET],
+                unknown_c: x[ROOM_RECORD_UNKNOWN_C_OFFSET],
+                unknown_d: x[ROOM_RECORD_UNKNOWN_D_OFFSET],
+                name: pascal::from_pascal_string(&x[ROOM_RECORD_NAME_OFFSET..ROOM_RECORD_SIZE]),
             };
             room.tiles
                 .copy_from_slice(&x[ROOM_RECORD_TILE_OFFSET..ROOM_RECORD_TILE_OFFSET + ROOM_AREA]);

@@ -9,3 +9,11 @@ fn crumb_basic_test() {
     assert_eq!(crumb(&foo, 3), 0b00u8);
     // TODO: test crumb(&foo, 4) panics
 }
+
+#[test]
+fn pascal_string_test() {
+    use super::pascal::from_pascal_string;
+
+    assert_eq!(from_pascal_string(b"\x0BHello world"), "Hello world");
+    assert_eq!(from_pascal_string(b"\x0AHello world"), "Hello worl");
+}
