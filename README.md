@@ -8,6 +8,7 @@ This is separate from [explorer-utils](https://github.com/footballhead/explorer-
 
 * Rust 2018
 * [Dungeon Explorer files](https://www.dosgamesarchive.com/download/dungeon-explorer/). These must be extracted to the current working directory.
+* SDL2_ttf (`apt install libsdl2-ttf-dev`)
 
 ## Building and Running
 

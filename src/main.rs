@@ -1,5 +1,6 @@
 use sdl2::event::Event;
 use sdl2::keyboard::Scancode;
+use sdl2::pixels::Color;
 use sdl2::pixels::PixelFormatEnum;
 use sdl2::rect::Rect;
 use sdl2::render::Texture;
@@ -13,6 +14,7 @@ mod img;
 mod monster;
 mod pascal;
 mod rms;
+mod text;
 
 mod tests;
 
@@ -101,6 +103,14 @@ fn main() {
 
     let sdl_context = sdl2::init().unwrap();
 
+    let ttf_context = sdl2::ttf::init().unwrap();
+    let liberation_sans = ttf_context
+        .load_font(
+            "fonts/liberation-fonts-ttf-2.1.2/LiberationSans-Regular.ttf",
+            16,
+        )
+        .unwrap();
+
     let event_subsystem = sdl_context.event().unwrap();
     event_subsystem
         .register_custom_event::<PaintEvent>()
@@ -159,6 +169,13 @@ fn main() {
     let mut room_index: usize = 0;
     let mut is_dragging = false;
 
+    let mut room_text = text::TextLabel::new(
+        &rooms[room_index].name,
+        Color::RGB(0xFF, 0xFF, 0xFF),
+        &liberation_sans,
+        &texture_creator,
+    );
+
     let mut event_pump = sdl_context.event_pump().unwrap();
     'mainloop: loop {
         for event in event_pump.wait_iter() {
@@ -170,8 +187,9 @@ fn main() {
                 } => {
                     if rooms[room_index].nav_north > 0 {
                         room_index = (rooms[room_index].nav_north - 1) as usize;
+                        room_text.update(&rooms[room_index].name);
+                        request_paint(&event_subsystem)
                     }
-                    request_paint(&event_subsystem)
                 }
                 Event::KeyDown {
                     scancode: Some(Scancode::Down),
@@ -179,8 +197,9 @@ fn main() {
                 } => {
                     if rooms[room_index].nav_south > 0 {
                         room_index = (rooms[room_index].nav_south - 1) as usize;
+                        room_text.update(&rooms[room_index].name);
+                        request_paint(&event_subsystem)
                     }
-                    request_paint(&event_subsystem)
                 }
                 Event::KeyDown {
                     scancode: Some(Scancode::Right),
@@ -188,8 +207,9 @@ fn main() {
                 } => {
                     if rooms[room_index].nav_east > 0 {
                         room_index = (rooms[room_index].nav_east - 1) as usize;
+                        room_text.update(&rooms[room_index].name);
+                        request_paint(&event_subsystem)
                     }
-                    request_paint(&event_subsystem)
                 }
                 Event::KeyDown {
                     scancode: Some(Scancode::Left),
@@ -197,8 +217,9 @@ fn main() {
                 } => {
                     if rooms[room_index].nav_west > 0 {
                         room_index = (rooms[room_index].nav_west - 1) as usize;
+                        room_text.update(&rooms[room_index].name);
+                        request_paint(&event_subsystem)
                     }
-                    request_paint(&event_subsystem)
                 }
                 Event::KeyDown {
                     scancode: Some(Scancode::C),
@@ -206,10 +227,13 @@ fn main() {
                 } => {
                     if rooms[room_index].nav_up > 0 {
                         room_index = (rooms[room_index].nav_up - 1) as usize;
+                        room_text.update(&rooms[room_index].name);
+                        request_paint(&event_subsystem)
                     } else if rooms[room_index].nav_down > 0 {
                         room_index = (rooms[room_index].nav_down - 1) as usize;
+                        room_text.update(&rooms[room_index].name);
+                        request_paint(&event_subsystem)
                     }
-                    request_paint(&event_subsystem)
                 }
                 Event::KeyDown {
                     scancode: Some(Scancode::S),
@@ -303,6 +327,11 @@ fn main() {
                             }
                         }
                     }
+
+                    canvas
+                        .copy(&room_text.texture(), None, room_text.rect(4, 300))
+                        .unwrap();
+
                     canvas.present();
                 }
                 // Convert all other events into paint events (keep the screen fresh)
