@@ -11,7 +11,7 @@ This is separate from [explorer-utils](https://github.com/footballhead/explorer-
 
 ## Building and Running
 
-First, extract the Dungeon Explorer files to the current working directory. Then:
+After requirements are satisfied:
 
     cargo build
     cargo run
@@ -19,3 +19,8 @@ First, extract the Dungeon Explorer files to the current working directory. Then
 ## Technical Documentation
 
 Refer to https://footballhead.github.io/explorer-utils/
+
+## Licenses
+
+* All Rust code in `src/` is under [UNLICENSE](UNLICENSE)
+* [Liberation Sans](https://github.com/liberationfonts/liberation-fonts) is under [SIL Open Font License](fonts/liberation-fonts-ttf-2.1.2/LICENSE)
